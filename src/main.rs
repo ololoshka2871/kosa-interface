@@ -145,9 +145,9 @@ async fn main() -> tokio_serial::Result<()> {
 
     loop {
         io.send(Request::Start).await?;
-        sleep(Duration::from_millis(1000)).await;
+        sleep(Duration::from_millis(300)).await;
         io.send(Request::FF10).await?;
-        sleep(Duration::from_millis(100)).await;
+        sleep(Duration::from_millis(20)).await;
 
         let res = io.next().await;
         let res = res.unwrap()?;
