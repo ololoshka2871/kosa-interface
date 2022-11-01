@@ -151,7 +151,7 @@ async fn main() -> tokio_serial::Result<()> {
 
         let res = io.next().await;
         let res = res.unwrap()?;
-        println!("F={}", res.freq());
+        println!("{}", res.freq());
     }
 
     //Ok(())
