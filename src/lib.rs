@@ -1,4 +1,4 @@
-use std::{io, fmt::Display};
+use std::{fmt::Display, io};
 use tokio_util::codec::{Decoder, Encoder};
 
 use bytes::{BufMut, BytesMut};
@@ -23,8 +23,13 @@ pub struct DataResponce {
     pub _noise: f32,
 }
 
+pub enum Error {
+    InvalidResponce,
+    EmptyResponce,
+}
+
 impl DataResponce {
-    fn from_raw(data: &[u8]) -> Result<Self, ()> {
+    fn from_raw(data: &[u8]) -> Result<Self, Error> {
         const DATAT_OFFSET: usize = 5;
 
         if data.len() >= DATAT_OFFSET + std::mem::size_of::<DataResponce>() {
@@ -33,20 +38,21 @@ impl DataResponce {
                 &data[DATAT_OFFSET..DATAT_OFFSET + std::mem::size_of::<DataResponce>()],
             );
 
+            // if all data bytes are zero, then it's not a valid data
+            if res.iter().all(|&x| x == 0x00) {
+                return Err(Error::EmptyResponce);
+            }
+
             let transformed: Vec<u8> = res
                 .chunks(std::mem::size_of::<f32>())
-                .map(|d| {
-                    let r = [d[1], d[0], d[3], d[2]];
-                    // println!("{:?} -> {:?}", d, r);
-                    r
-                })
+                .map(|d| [d[1], d[0], d[3], d[2]])
                 .flatten()
                 .collect();
 
             res.copy_from_slice(&transformed);
             Ok(unsafe { std::mem::transmute_copy(&res) })
         } else {
-            Err(())
+            Err(Error::InvalidResponce)
         }
     }
 
@@ -59,8 +65,13 @@ impl Display for DataResponce {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "_T_P: {}\t_error: {}\t_F: {}\t_alpha: {}\t_a: {}\t_phi: {}\t_signal: {}\t_noise: {}",
-            self._T_P, self._error, self._F, self._alpha, self._a, self._phi, self._signal, self._noise
+            "_T_P: {}\t_error: {}\t_F: {}\t_alpha: {}\t_signal: {}\t_noise: {}",
+            self._T_P,
+            self._error,
+            self._F,
+            self._alpha,
+            self._signal,
+            self._noise
         )
     }
 }
