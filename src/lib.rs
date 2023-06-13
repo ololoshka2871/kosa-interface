@@ -1,20 +1,17 @@
-use futures::{stream::StreamExt, SinkExt};
-use std::{io, time::Duration};
-use tokio::time::sleep;
+use std::{io, fmt::Display};
 use tokio_util::codec::{Decoder, Encoder};
 
 use bytes::{BufMut, BytesMut};
-use tokio_serial::SerialPortBuilderExt;
 
-struct LineCodec;
+pub struct LineCodec;
 
-enum Request {
+pub enum Request {
     FF10,
     Start,
 }
 
 #[allow(non_snake_case)]
-struct DataResponce {
+pub struct DataResponce {
     // условные названия, так как они написаны в Q2view
     pub _T_P: f32,
     pub _error: f32,
@@ -53,8 +50,18 @@ impl DataResponce {
         }
     }
 
-    fn freq(&self) -> f32 {
+    pub fn freq(&self) -> f32 {
         self._signal
+    }
+}
+
+impl Display for DataResponce {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "_T_P: {}\t_error: {}\t_F: {}\t_alpha: {}\t_a: {}\t_phi: {}\t_signal: {}\t_noise: {}",
+            self._T_P, self._error, self._F, self._alpha, self._a, self._phi, self._signal, self._noise
+        )
     }
 }
 
@@ -81,21 +88,6 @@ impl Decoder for LineCodec {
     {
         tokio_util::codec::Framed::new(io, self)
     }
-}
-
-fn calc_crc(data: &[u8]) -> u16 {
-    let mut crc = 0xFFFF;
-    for x in data {
-        crc ^= u16::from(*x);
-        for _ in 0..8 {
-            let crc_odd = (crc & 0x0001) != 0;
-            crc >>= 1;
-            if crc_odd {
-                crc ^= 0xA001;
-            }
-        }
-    }
-    crc << 8 | crc >> 8
 }
 
 impl Encoder<Request> for LineCodec {
@@ -138,21 +130,17 @@ impl Encoder<Request> for LineCodec {
     }
 }
 
-#[tokio::main(flavor = "current_thread")]
-async fn main() -> tokio_serial::Result<()> {
-    let port = tokio_serial::new("/dev/ttyUSB0", 1500000).open_native_async()?;
-    let mut io = LineCodec.framed(port);
-
-    loop {
-        io.send(Request::Start).await?;
-        sleep(Duration::from_millis(300)).await;
-        io.send(Request::FF10).await?;
-        sleep(Duration::from_millis(20)).await;
-
-        let res = io.next().await;
-        let res = res.unwrap()?;
-        println!("{}", res.freq());
+fn calc_crc(data: &[u8]) -> u16 {
+    let mut crc = 0xFFFF;
+    for x in data {
+        crc ^= u16::from(*x);
+        for _ in 0..8 {
+            let crc_odd = (crc & 0x0001) != 0;
+            crc >>= 1;
+            if crc_odd {
+                crc ^= 0xA001;
+            }
+        }
     }
-
-    //Ok(())
+    crc << 8 | crc >> 8
 }

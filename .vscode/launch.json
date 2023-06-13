@@ -5,12 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug",
-            "type": "gdb",
+            "type": "lldb",
             "request": "launch",
-            "target": "target/debug/kosa-test",
-            "cwd": "${workspaceRoot}",
-            "valuesFormatting": "parseText"
-        }
+            "name": "test",
+            "program": "${workspaceFolder}/target/debug/kosa-test",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+
+        },
     ]
 }
