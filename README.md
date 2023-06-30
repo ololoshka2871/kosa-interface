@@ -33,3 +33,10 @@
     было : `[d0 d1 d2 d3]`
     стало: `[d1 d0 d3 d2]` -> f32
 9. Расчитанная частота резонанса находится в значении 6 (`_signal`), остальные - колдунство.
+
+## Примеры
+- `kosa-test.rs` - пример чтения данных с устройства
+- `kosa-plot.rs` - пример чтения данных с устройства и построения графика, используя [livechart](https://github.com/ololoshka2871/livechart)
+```bash
+cargo run --example <example> [--release] -- --port <port> [..args]
+```

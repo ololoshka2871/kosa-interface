@@ -9,7 +9,7 @@
             "request": "launch",
             "name": "test",
             "program": "${workspaceFolder}/target/debug/kosa-test",
-            "args": [],
+            "args": ["-p", "COM5"],
             "cwd": "${workspaceFolder}",
         },
     ]
