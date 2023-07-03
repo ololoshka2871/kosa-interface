@@ -9,7 +9,9 @@ use tokio::time::sleep;
 use tokio_serial::SerialPortBuilderExt;
 use tokio_util::codec::Decoder;
 
-use protocol::{Error, Request};
+use protocol::Request;
+
+pub use protocol::Error;
 
 pub struct Kosa {
     io: tokio_util::codec::Framed<tokio_serial::SerialStream, line_codec::LineCodec>,
